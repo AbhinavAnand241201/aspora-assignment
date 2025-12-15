@@ -11,7 +11,8 @@ import SwiftUI
 struct NASA_appApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView()
+                .preferredColorScheme(.dark) 
         }
     }
 }
