@@ -17,12 +17,13 @@ class HomeViewModel: ObservableObject {
     private let favoritesKey = "apod.favorites"
     private let cacheKey = "apod.lastResponse"
     
-    init(networkService: NetworkServiceProtocol = NetworkManager.shared) {
+    init(networkService: NetworkServiceProtocol = NetworkManager.shared,
+         autoLoad: Bool = true) {
         self.networkService = networkService
         loadFavorites()
         
-        Task {
-            await loadAPOD()
+        if autoLoad {
+            Task { await loadAPOD() }
         }
     }
     
@@ -33,7 +34,7 @@ class HomeViewModel: ObservableObject {
     @discardableResult
     func selectDate(_ date: Date) -> Bool {
         guard date <= Date() else {
-            errorMessage = " Please select a valid date."
+            errorMessage = "You can't see the future! Please select a past date."
             return false
         }
         

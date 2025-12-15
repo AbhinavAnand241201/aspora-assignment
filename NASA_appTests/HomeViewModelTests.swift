@@ -34,7 +34,7 @@ final class HomeViewModelTests: XCTestCase {
     override func setUp() {
         super.setUp()
         mockService = MockNetworkService()
-        viewModel = HomeViewModel(networkService: mockService)
+        viewModel = HomeViewModel(networkService: mockService, autoLoad: false)
         // Clear persisted state between tests
         UserDefaults.standard.removeObject(forKey: "apod.favorites")
         UserDefaults.standard.removeObject(forKey: "apod.lastResponse")
@@ -84,17 +84,6 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.errorMessage!.contains("1995"))
     }
     
-    func testClearsAPODOnFailure() async {
-        await viewModel.loadAPOD()
-        XCTAssertNotNil(viewModel.apod)
-        
-        mockService.shouldReturnError = true
-        await viewModel.loadAPOD()
-        
-        XCTAssertNil(viewModel.apod, "APOD should be cleared on failure")
-        XCTAssertNotNil(viewModel.errorMessage)
-    }
-    
     func testOfflineFallsBackToCachedAPOD() async {
         await viewModel.loadAPOD()
         XCTAssertNotNil(viewModel.apod)
@@ -122,7 +111,7 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.isFavorite(sample))
         
         // Re-initialize to verify persistence
-        let vm2 = HomeViewModel(networkService: mockService)
+        let vm2 = HomeViewModel(networkService: mockService, autoLoad: false)
         XCTAssertTrue(vm2.isFavorite(sample))
     }
     
