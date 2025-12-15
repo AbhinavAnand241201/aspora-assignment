@@ -131,7 +131,7 @@ struct TimelineView: View {
     }
     
     private func loadInitial() async {
-        await loadRange(endingAt: Date())
+        await loadRange(endingAt: todayForAPOD())
     }
     
     private func loadMorePast() async {
@@ -184,6 +184,13 @@ struct TimelineView: View {
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         return formatter.date(from: string)
+    }
+    
+    private func todayForAPOD() -> Date {
+        var utcCalendar = Calendar(identifier: .gregorian)
+        utcCalendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+        let components = utcCalendar.dateComponents([.year, .month, .day], from: Date())
+        return utcCalendar.date(from: components) ?? Date()
     }
 }
 

@@ -5,7 +5,7 @@ import SwiftUI
 struct Constants {
     struct API {
        
-        static let key = "HFNLdNqtWQx7c2HahE4ib3DS36d5nHYdjcwZ4zs9" 
+        static let key = "wFZo7CLG4yyvTFSNUbdFo8O9DSNdZxAhL2RmYhVG"
         static let baseURL = "https://api.nasa.gov/planetary/apod"
     }
     

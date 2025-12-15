@@ -22,7 +22,7 @@ struct NASA_appApp: App {
     var body: some Scene {
         WindowGroup {
             TabView {
-                HomeView()
+            HomeView()
                     .tabItem {
                         Label("Today", systemImage: "photo")
                     }

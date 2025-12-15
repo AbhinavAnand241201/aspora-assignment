@@ -111,44 +111,44 @@ struct HomeView: View {
                                     let cardWidth = geo.size.width
                                     let cardHeight = cardWidth * 0.6
                                     
-                                    GlassCard {
-                                        VStack(alignment: .leading, spacing: 12) {
+                                GlassCard {
+                                    VStack(alignment: .leading, spacing: 12) {
                                             if apod.mediaType == "image" {
                                                 AsyncImage(
                                                     url: viewModel.previewURL(for: apod),
                                                     transaction: .init(animation: .easeInOut(duration: 0.2))
                                                 ) { phase in
-                                                    switch phase {
-                                                    case .empty:
-                                                        ZStack {
-                                                            Color.white.opacity(0.05)
-                                                            ProgressView()
-                                                        }
+                                            switch phase {
+                                            case .empty:
+                                                ZStack {
+                                                    Color.white.opacity(0.05)
+                                                    ProgressView()
+                                                }
                                                         .frame(width: cardWidth, height: cardHeight)
                                                         .clipShape(RoundedRectangle(cornerRadius: 15))
-                                                    case .success(let image):
+                                            case .success(let image):
                                                         ZStack(alignment: .topLeading) {
-                                                            image
-                                                                .resizable()
+                                                image
+                                                    .resizable()
                                                                 .scaledToFill()
                                                                 .frame(width: cardWidth, height: cardHeight)
-                                                                .clipped()
-                                                                .cornerRadius(15)
+                                                    .clipped()
+                                                    .cornerRadius(15)
                                                             
                                                             mediaBadge(for: apod.mediaType)
                                                                 .padding(8)
                                                         }
-                                                    case .failure:
-                                                        ZStack {
-                                                            Color.white.opacity(0.05)
-                                                            Image(systemName: "photo.fill")
-                                                                .font(.largeTitle)
-                                                                .foregroundColor(.gray)
-                                                        }
+                                            case .failure:
+                                                ZStack {
+                                                    Color.white.opacity(0.05)
+                                                    Image(systemName: "photo.fill")
+                                                        .font(.largeTitle)
+                                                        .foregroundColor(.gray)
+                                                }
                                                         .frame(width: cardWidth, height: cardHeight)
                                                         .clipShape(RoundedRectangle(cornerRadius: 15))
-                                                    @unknown default:
-                                                        EmptyView()
+                                            @unknown default:
+                                                EmptyView()
                                                     }
                                                 }
                                             } else {
@@ -174,18 +174,18 @@ struct HomeView: View {
                                                     
                                                     mediaBadge(for: apod.mediaType)
                                                         .padding(8)
-                                                }
                                             }
-                                            
-                                            VStack(alignment: .leading, spacing: 6) {
-                                                Text(apod.title)
-                                                    .font(.title2)
-                                                    .fontWeight(.bold)
+                                        }
+                                        
+                                        VStack(alignment: .leading, spacing: 6) {
+                                            Text(apod.title)
+                                                .font(.title2)
+                                                .fontWeight(.bold)
                                                     .foregroundColor(isDarkMode ? .white : .black)
-                                                    .multilineTextAlignment(.leading)
-                                                
-                                                Text(apod.date)
-                                                    .font(.subheadline)
+                                                .multilineTextAlignment(.leading)
+                                            
+                                            Text(apod.date)
+                                                .font(.subheadline)
                                                     .foregroundColor(
                                                         isDarkMode
                                                         ? .white.opacity(0.7)
@@ -200,10 +200,10 @@ struct HomeView: View {
                                                             ? .white.opacity(0.6)
                                                             : .black.opacity(0.55)
                                                         )
-                                                }
-                                            }
                                         }
                                     }
+                                }
+                            }
                                     .frame(width: cardWidth, height: cardHeight + 80)
                                 }
                                 .frame(height: UIScreen.main.bounds.width * 0.6 + 80)
@@ -269,19 +269,19 @@ struct HomeView: View {
                         in: viewModel.allowedDateRange,
                         displayedComponents: .date
                     )
-                    .datePickerStyle(.graphical)
+                        .datePickerStyle(.graphical)
                     .colorScheme(isDarkMode ? .dark : .light)
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(15)
-                    .padding(.horizontal)
-                    .onChange(of: viewModel.selectedDate) { oldValue, newValue in
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(15)
+                        .padding(.horizontal)
+                        .onChange(of: viewModel.selectedDate) { oldValue, newValue in
                         if viewModel.selectDate(newValue) {
                             showDatePicker = false
                         } else {
                             viewModel.selectedDate = oldValue
                         }
-                    }
+                        }
                     
                     Button("Cancel") {
                         showDatePicker = false
