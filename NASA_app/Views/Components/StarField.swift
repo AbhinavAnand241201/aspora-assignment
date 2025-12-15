@@ -1,29 +1,21 @@
 import SwiftUI
 
 struct StarField: View {
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                ForEach(0..<50) { _ in
+                ForEach(0..<80, id: \.self) { index in
+                    let isLarge = index % 5 == 0
                     Circle()
-                        .fill(Color.white)
-                        .frame(width: 1, height: 1)
+                        .fill(colorScheme == .dark ? Color.white : Color.black.opacity(0.18))
+                        .frame(width: isLarge ? 2.0 : 1.2, height: isLarge ? 2.0 : 1.2)
                         .position(
                             x: CGFloat.random(in: 0...geometry.size.width),
                             y: CGFloat.random(in: 0...geometry.size.height)
                         )
-                        .opacity(Double.random(in: 0.2...0.6))
-                }
-                
-                ForEach(0..<20) { _ in
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 2, height: 2)
-                        .position(
-                            x: CGFloat.random(in: 0...geometry.size.width),
-                            y: CGFloat.random(in: 0...geometry.size.height)
-                        )
-                        .opacity(Double.random(in: 0.4...0.8))
+                        .opacity(isLarge ? 0.7 : 0.4)
                 }
             }
         }

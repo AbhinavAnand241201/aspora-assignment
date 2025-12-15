@@ -28,10 +28,12 @@ struct DetailView: View {
                         switch phase {
                         case .empty:
                             ProgressView()
+                                .scaleEffect(1.3)
+                                .tint(.white)
                                 .frame(width: width, height: width * 0.6)
                         case .success(let image):
                             image
-                                .resizable()
+                                .resizable() 
                                 .scaledToFit()
                                 .frame(maxWidth: width)
                                 .scaleEffect(scale)
@@ -114,7 +116,7 @@ struct DetailView: View {
                                         self.showImageShareSheet = true
                                     }
                                 } catch {
-                                    // For now, just log; could surface a toast or alert if desired
+                                    // For now, just logging the error; could surface a toast or alert if desired
                                     print("Share image download failed: \(error)")
                                 }
                             }

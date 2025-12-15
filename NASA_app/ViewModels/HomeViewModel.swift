@@ -57,26 +57,44 @@ class HomeViewModel: ObservableObject {
         errorMessage = nil
         noticeMessage = nil
         apod = nil
-        
-        do {
-            let result = try await networkService.fetchAPOD(date: selectedDate)
-            
-            if result.mediaType == "image" || result.mediaType == "video" {
-                self.apod = result
-                cacheAPOD(result)
-            } else {
-                self.errorMessage = "Unsupported media type: \(result.mediaType)"
-            }
-            
-        } catch {
-            if let cached = loadCachedAPOD() {
-                self.apod = cached
-                self.noticeMessage = "Offline: showing last saved APOD"
-            } else {
-                self.errorMessage = error.localizedDescription
+
+        let maxAttempts = 3
+        var lastError: Error?
+
+        for attempt in 1...maxAttempts {
+            do {
+                let result = try await networkService.fetchAPOD(date: selectedDate)
+
+                if result.mediaType == "image" || result.mediaType == "video" {
+                    self.apod = result
+                    cacheAPOD(result)
+                    isLoading = false
+                    return
+                } else {
+                    self.errorMessage = "Unsupported media type: \(result.mediaType)"
+                    isLoading = false
+                    return
+                }
+
+            } catch {
+                lastError = error
+
+                if attempt < maxAttempts {
+                    // brief delay before retrying of 0.5s
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    continue
+                }
+
+                // Final failure after retries
+                if let cached = loadCachedAPOD() {
+                    self.apod = cached
+                    self.noticeMessage = "Offline: showing last saved APOD"
+                } else {
+                    self.errorMessage = lastError?.localizedDescription ?? "Something went wrong."
+                }
             }
         }
-        
+
         isLoading = false
     }
     

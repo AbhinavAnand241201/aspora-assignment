@@ -35,7 +35,7 @@ final class HomeViewModelTests: XCTestCase {
         super.setUp()
         mockService = MockNetworkService()
         viewModel = HomeViewModel(networkService: mockService, autoLoad: false)
-        // Clear persisted state between tests
+        
         UserDefaults.standard.removeObject(forKey: "apod.favorites")
         UserDefaults.standard.removeObject(forKey: "apod.lastResponse")
     }

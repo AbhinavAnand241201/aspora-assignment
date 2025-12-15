@@ -11,10 +11,8 @@ struct HomeView: View {
             (isDarkMode ? Color.black : Color.white)
                 .ignoresSafeArea()
             
-            if isDarkMode {
-                StarField()
-                    .opacity(0.6)
-            }
+            StarField()
+                .opacity(isDarkMode ? 0.6 : 0.25)
             
             VStack(spacing: 0) {
                 HStack {
