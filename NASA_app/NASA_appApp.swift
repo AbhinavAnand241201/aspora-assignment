@@ -21,7 +21,17 @@ struct NASA_appApp: App {
     
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            TabView {
+                HomeView()
+                    .tabItem {
+                        Label("Today", systemImage: "photo")
+                    }
+                
+                TimelineView()
+                    .tabItem {
+                        Label("Timeline", systemImage: "clock.arrow.circlepath")
+                    }
+            }
         }
     }
 }
