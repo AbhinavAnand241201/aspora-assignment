@@ -35,6 +35,9 @@ final class HomeViewModelTests: XCTestCase {
         super.setUp()
         mockService = MockNetworkService()
         viewModel = HomeViewModel(networkService: mockService)
+        // Clear persisted state between tests
+        UserDefaults.standard.removeObject(forKey: "apod.favorites")
+        UserDefaults.standard.removeObject(forKey: "apod.lastResponse")
     }
 
     override func tearDown() {
@@ -90,5 +93,53 @@ final class HomeViewModelTests: XCTestCase {
         
         XCTAssertNil(viewModel.apod, "APOD should be cleared on failure")
         XCTAssertNotNil(viewModel.errorMessage)
+    }
+    
+    func testOfflineFallsBackToCachedAPOD() async {
+        await viewModel.loadAPOD()
+        XCTAssertNotNil(viewModel.apod)
+        
+        mockService.shouldReturnError = true
+        await viewModel.loadAPOD()
+        
+        XCTAssertNotNil(viewModel.apod, "Should show cached APOD when offline")
+        XCTAssertEqual(viewModel.noticeMessage, "Offline: showing last saved APOD")
+    }
+    
+    func testFavoritesPersist() {
+        let sample = APODResponse(
+            copyright: "Test Copyright",
+            date: "2023-10-25",
+            explanation: "Test Explanation",
+            hdurl: "http://test.com/hd.jpg",
+            mediaType: "image",
+            serviceVersion: "v1",
+            title: "Test Title",
+            url: "http://test.com/image.jpg"
+        )
+        
+        viewModel.toggleFavorite(sample)
+        XCTAssertTrue(viewModel.isFavorite(sample))
+        
+        // Re-initialize to verify persistence
+        let vm2 = HomeViewModel(networkService: mockService)
+        XCTAssertTrue(vm2.isFavorite(sample))
+    }
+    
+    func testPreviewURLHandlesYouTube() {
+        let sample = APODResponse(
+            copyright: nil,
+            date: "2023-10-26",
+            explanation: "Video",
+            hdurl: nil,
+            mediaType: "video",
+            serviceVersion: "v1",
+            title: "Video",
+            url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        )
+        
+        let thumb = viewModel.previewURL(for: sample)
+        XCTAssertNotNil(thumb)
+        XCTAssertTrue(thumb?.absoluteString.contains("img.youtube.com") == true)
     }
 }

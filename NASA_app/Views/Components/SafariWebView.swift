@@ -9,7 +9,7 @@ struct SafariWebView: UIViewControllerRepresentable {
     }
     
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {
-        // No-op
+        
     }
 }
 

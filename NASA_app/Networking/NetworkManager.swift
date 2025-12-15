@@ -32,7 +32,17 @@ class NetworkManager: NetworkServiceProtocol {
     
     private let session: URLSession
     
-    init(session: URLSession = .shared) {
+    private static func makeCachedSession() -> URLSession {
+        let memoryCapacity = 50 * 1024 * 1024 // 50 MB
+        let diskCapacity = 200 * 1024 * 1024  // 200 MB
+        let cache = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity)
+        let config = URLSessionConfiguration.default
+        config.urlCache = cache
+        config.requestCachePolicy = .returnCacheDataElseLoad
+        return URLSession(configuration: config)
+    }
+    
+    init(session: URLSession = NetworkManager.makeCachedSession()) {
         self.session = session
     }
     

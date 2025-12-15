@@ -4,27 +4,44 @@ struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showDatePicker = false
     @State private var showDetail = false
+    @AppStorage("cosmicGallery.isDarkMode") private var isDarkMode: Bool = true
     
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            (isDarkMode ? Color.black : Color.white)
+                .ignoresSafeArea()
             
-            StarField()
-                .opacity(0.6)
+            if isDarkMode {
+                StarField()
+                    .opacity(0.6)
+            }
             
             VStack(spacing: 0) {
                 HStack {
                     Text("Cosmic Gallery")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .foregroundColor(isDarkMode ? .white : .black)
                     
                     Spacer()
-
+                    
+                    Button(action: { isDarkMode.toggle() }) {
+                        Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
+                            .font(.title2)
+                            .foregroundColor(isDarkMode ? .yellow : .blue)
+                            .padding(10)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+                            )
+                    }
+                    
                     Button(action: { showDatePicker = true }) {
                         Image(systemName: "calendar")
                             .font(.title2)
-                            .foregroundColor(.white)
+                            .foregroundColor(isDarkMode ? .white : .black)
                             .padding(10)
                             .background(.ultraThinMaterial)
                             .clipShape(Circle())
@@ -33,9 +50,12 @@ struct HomeView: View {
                                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
                             )
                     }
+                    .accessibilityLabel("Open date picker")
                 }
                 .padding()
                 .background(.ultraThinMaterial)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Cosmic Gallery header")
                 
                 if viewModel.isLoading {
                     Spacer()
@@ -60,7 +80,7 @@ struct HomeView: View {
                         Text("Connection Lost")
                             .font(.title2)
                             .fontWeight(.semibold)
-                            .foregroundColor(.white)
+                            .foregroundColor(isDarkMode ? .white : .black)
                         
                         Text(error)
                             .foregroundColor(.gray)
@@ -76,11 +96,18 @@ struct HomeView: View {
                                 .foregroundColor(.black)
                                 .cornerRadius(12)
                         }
+                            .accessibilityLabel("Retry mission")
                         Spacer()
                     }
                 } else if let apod = viewModel.apod {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 25) {
+                            if let notice = viewModel.noticeMessage {
+                                Text(notice)
+                                    .font(.caption)
+                                    .foregroundColor(.yellow)
+                                    .padding(.horizontal)
+                            }
                             Button(action: { showDetail = true }) {
                                 GeometryReader { geo in
                                     let cardWidth = geo.size.width
@@ -90,7 +117,7 @@ struct HomeView: View {
                                         VStack(alignment: .leading, spacing: 12) {
                                             if apod.mediaType == "image" {
                                                 AsyncImage(
-                                                    url: URL(string: apod.url),
+                                                    url: viewModel.previewURL(for: apod),
                                                     transaction: .init(animation: .easeInOut(duration: 0.2))
                                                 ) { phase in
                                                     switch phase {
@@ -102,12 +129,17 @@ struct HomeView: View {
                                                         .frame(width: cardWidth, height: cardHeight)
                                                         .clipShape(RoundedRectangle(cornerRadius: 15))
                                                     case .success(let image):
-                                                        image
-                                                            .resizable()
-                                                            .scaledToFill()
-                                                            .frame(width: cardWidth, height: cardHeight)
-                                                            .clipped()
-                                                            .cornerRadius(15)
+                                                        ZStack(alignment: .topLeading) {
+                                                            image
+                                                                .resizable()
+                                                                .scaledToFill()
+                                                                .frame(width: cardWidth, height: cardHeight)
+                                                                .clipped()
+                                                                .cornerRadius(15)
+                                                            
+                                                            mediaBadge(for: apod.mediaType)
+                                                                .padding(8)
+                                                        }
                                                     case .failure:
                                                         ZStack {
                                                             Color.white.opacity(0.05)
@@ -122,7 +154,7 @@ struct HomeView: View {
                                                     }
                                                 }
                                             } else {
-                                                ZStack {
+                                                ZStack(alignment: .topLeading) {
                                                     LinearGradient(
                                                         colors: [Color.purple.opacity(0.7), Color.black],
                                                         startPoint: .topLeading,
@@ -141,6 +173,9 @@ struct HomeView: View {
                                                             .foregroundColor(.white.opacity(0.9))
                                                             .font(.headline)
                                                     }
+                                                    
+                                                    mediaBadge(for: apod.mediaType)
+                                                        .padding(8)
                                                 }
                                             }
                                             
@@ -148,12 +183,26 @@ struct HomeView: View {
                                                 Text(apod.title)
                                                     .font(.title2)
                                                     .fontWeight(.bold)
-                                                    .foregroundColor(.white)
+                                                    .foregroundColor(isDarkMode ? .white : .black)
                                                     .multilineTextAlignment(.leading)
                                                 
                                                 Text(apod.date)
                                                     .font(.subheadline)
-                                                    .foregroundColor(.white.opacity(0.7))
+                                                    .foregroundColor(
+                                                        isDarkMode
+                                                        ? .white.opacity(0.7)
+                                                        : .black.opacity(0.6)
+                                                    )
+                                                
+                                                if let copyright = apod.copyright {
+                                                    Text("© \(copyright)")
+                                                        .font(.caption)
+                                                        .foregroundColor(
+                                                            isDarkMode
+                                                            ? .white.opacity(0.6)
+                                                            : .black.opacity(0.55)
+                                                        )
+                                                }
                                             }
                                         }
                                     }
@@ -162,16 +211,29 @@ struct HomeView: View {
                                 .frame(height: UIScreen.main.bounds.width * 0.6 + 80)
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .overlay(alignment: .topTrailing) {
+                                if let apod = viewModel.apod {
+                                    Button(action: { viewModel.toggleFavorite(apod) }) {
+                                        Image(systemName: viewModel.isFavorite(apod) ? "heart.fill" : "heart")
+                                            .foregroundColor(viewModel.isFavorite(apod) ? .red : .white)
+                                            .padding(10)
+                                            .background(Color.black.opacity(0.55))
+                                            .clipShape(Circle())
+                                    }
+                                    .accessibilityLabel(viewModel.isFavorite(apod) ? "Remove from favorites" : "Add to favorites")
+                                    .padding(12)
+                                }
+                            }
                             
                             GlassCard {
                                 VStack(alignment: .leading, spacing: 10) {
                                     Text("Description")
                                         .font(.headline)
-                                        .foregroundColor(.white.opacity(0.8))
+                                        .foregroundColor(isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
                                     
                                     Text(apod.explanation)
                                         .font(.body)
-                                        .foregroundColor(.white.opacity(0.9))
+                                        .foregroundColor(isDarkMode ? .white.opacity(0.9) : .black.opacity(0.9))
                                         .lineSpacing(6)
                                 }
                             }
@@ -188,18 +250,20 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showDatePicker) {
             ZStack {
-                Color.black.ignoresSafeArea()
+                (isDarkMode ? Color.black : Color(.systemBackground))
+                    .ignoresSafeArea()
                 
-                VStack(spacing: 16) {
+                VStack(spacing: 20) {
                     Capsule()
                         .fill(Color.white.opacity(0.25))
                         .frame(width: 50, height: 5)
-                        .padding(.top, 8)
+                        .padding(.top, 16)
                     
                     Text("Select Mission Date")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(isDarkMode ? .white : .primary)
                         .padding(.horizontal)
+                        .padding(.top, 4)
                     
                     DatePicker(
                         "Select Date",
@@ -208,7 +272,7 @@ struct HomeView: View {
                         displayedComponents: .date
                     )
                     .datePickerStyle(.graphical)
-                    .colorScheme(.dark)
+                    .colorScheme(isDarkMode ? .dark : .light)
                     .padding()
                     .background(.ultraThinMaterial)
                     .cornerRadius(15)
@@ -227,7 +291,7 @@ struct HomeView: View {
                     .foregroundColor(.red)
                     .padding(.bottom, 8)
                 }
-                .presentationDetents([.medium])
+                .presentationDetents([.medium, .large])
             }
         }
         .fullScreenCover(isPresented: $showDetail) {
@@ -235,7 +299,28 @@ struct HomeView: View {
                 DetailView(apod: apod)
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(isDarkMode ? .dark : .light)
         .safeAreaPadding(.bottom, 12)
+        .animation(.easeInOut(duration: 0.25), value: isDarkMode)
+    }
+    
+    @ViewBuilder
+    private func mediaBadge(for mediaType: String) -> some View {
+        let (icon, label): (String, String) = mediaType == "video"
+        ? ("play.rectangle.fill", "Video")
+        : ("photo", "Image")
+        
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.caption2)
+            Text(label)
+                .font(.caption2)
+                .fontWeight(.semibold)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.black.opacity(0.55))
+        .clipShape(Capsule())
+        .foregroundColor(.white)
     }
 }

@@ -1,6 +1,8 @@
 import SwiftUI
+import UIKit
 
 struct GlassCard<Content: View>: View {
+    @Environment(\.colorScheme) private var colorScheme
     let content: Content
     
     init(@ViewBuilder content: () -> Content) {
@@ -10,7 +12,11 @@ struct GlassCard<Content: View>: View {
     var body: some View {
         content
             .padding()
-            .background(.ultraThinMaterial)
+            .background(
+                colorScheme == .dark
+                ? Color.white.opacity(0.08)
+                : Color(.systemBackground).opacity(0.95)
+            )
             .cornerRadius(Constants.UI.cornerRadius)
             .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
             .overlay(
